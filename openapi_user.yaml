@@ -1,0 +1,98 @@
+openapi: 3.0.0
+info:
+  title: EventsService API
+  version: 1.0.0
+  description: API для очередей пользователей
+
+servers:
+  - url: http://localhost:8010
+    description: Локальный сервер для разработки
+
+paths:
+  /redis/user/{id}/waiting_list:
+    post:
+      summary: Добавление пользователя в список ожидания
+      description: Добавляет пользователя в список ожидания на покупку билета
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор пользователя
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  type: string
+                  description: Идентификатор матча
+                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+        '200':
+          description: Пользователь успешно добавлен в список ожидания
+        '400':
+          description: Ошибка в запросе (например, некорректные данные)
+        '500':
+          description: Ошибка сервера
+
+  /redis/next_user:
+    post:
+      summary: Получение следующего пользователя из списка ожидания
+      description: Возвращает следующего пользователя из списка ожидания на покупку билета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  type: string
+                  description: Идентификатор матча
+                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+        '200':
+          description: Пользователь успешно получен
+        '404':
+          description: Список ожидания пуст
+        '500':
+          description: Ошибка сервера
+
+  /create_event:
+    post:
+      summary: Создание события
+      description: Создает событие
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+            type: object
+            properties:
+              event_name:
+                type: string
+                description: Название события
+                example: "Футбольный матч"
+              price:
+                type: integer
+                description: Цена билета
+                example: 1000
+              places_count:
+                type: integer
+                description: Количество мест
+                example: 100
+            required:
+              - event_name
+              - price
+              - places_count
+      responses:
+        '201':
+          description: Событие успешно создано
+        '400':
+          description: Ошибка в запросе (например, некорректные данные)
+        '500':
+          description: Ошибка сервера

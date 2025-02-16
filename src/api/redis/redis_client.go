@@ -1,6 +1,7 @@
 package redis_worker
 
 import (
+	"RedisService/internal/config"
 	"context"
 	"github.com/go-redis/redis/v8"
 	"log"
@@ -9,11 +10,11 @@ import (
 var Rdb *redis.Client
 var Ctx = context.Background()
 
-func InitRedis() {
+func InitRedis(cfg *config.Config) {
 	Rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     cfg.RedisServer.Address,
+		Password: cfg.RedisServer.Password,
+		DB:       cfg.RedisServer.DB,
 	})
 
 	_, err := Rdb.Ping(Ctx).Result()

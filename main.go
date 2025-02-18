@@ -4,8 +4,9 @@ import (
 	"RedisService/internal/config"
 	"RedisService/internal/database"
 	_ "RedisService/internal/database"
-	"RedisService/src/api/events"
-	"RedisService/src/api/redis"
+	"RedisService/src/handlers/events"
+	"RedisService/src/handlers/middleware"
+	"RedisService/src/handlers/redis"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v5"
 	"log"
@@ -19,6 +20,9 @@ func main() {
 	defer redis_worker.Rdb.Close()   // Не забываем закрыть соединение с Redis по окончании
 
 	server := gin.Default()
+
+	server.Use(middleware.LoggingMiddleware())
+	server.Use(middleware.AuthMiddleware())
 
 	server.POST("/users/register", func(context *gin.Context) {
 		// TODO: Добавить обработку запроса на регистрацию пользователя

@@ -21,5 +21,6 @@ CREATE TABLE events_service_data.tickets (
     id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES events_service.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

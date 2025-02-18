@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net/http"
@@ -94,11 +95,7 @@ func GetUserBudget(ctx context.Context, db *pgxpool.Pool, userID string) (int64,
 }
 
 func UpdateDB(ctx context.Context, db *pgxpool.Pool, eventID, userID string, eventPrice int64) error {
-	tx, err := db.Begin(ctx)
-	if err != nil {
-		log.Printf("Ошибка открытия транзакции: %v", err)
-		return err
-	}
+	tx, err := db.BeginTx(context.Background(), pgx.TxOptions{})
 	defer tx.Rollback(ctx)
 
 	_, err = tx.Exec(ctx, "UPDATE events_service_data.events SET places_count = places_count - 1 WHERE id = $1", eventID)
@@ -112,5 +109,11 @@ func UpdateDB(ctx context.Context, db *pgxpool.Pool, eventID, userID string, eve
 		log.Printf("Ошибка обновления бюджета пользователя: %v", err)
 		return err
 	}
+
+	_, err = tx.Exec(ctx, "INSERT INTO events_service_data.tickets (user_id, event, price) VALUES ($1, $2, $3)", userID, eventID, eventPrice)
+	if err != nil {
+		log.Printf("Ошибка добавления билета в базу данных: %v", err)
+	}
+
 	return tx.Commit(ctx)
 }

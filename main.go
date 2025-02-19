@@ -39,7 +39,7 @@ func main() {
 	})
 
 	server.PUT("/user/update", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на обновление информации о пользователе
+		user.UpdateUserInfoRequest(context, db)
 	})
 
 	server.POST("/user/reset_password", func(context *gin.Context) {

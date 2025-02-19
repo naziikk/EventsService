@@ -1,4 +1,4 @@
-env: "loval"
+env: "local"
 http_server:
   address: "localhost:8010"
   timeout: 4s
@@ -12,3 +12,5 @@ redis_server:
 postgres_data:
   address: "localhost:5432"
   name: "events_service_data"
+
+jwt-secret: "vVerYsEEECre234TtoOoKkEnn"

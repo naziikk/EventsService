@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"RedisService/internal/config"
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -13,8 +14,6 @@ import (
 
 // TODO: добавить хеширование
 
-var jwtKey = []byte("your-secret-key")
-
 type Claims struct {
 	Username string `json:"username"`
 	UserID   string `json:"user_id"`
@@ -22,7 +21,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func authorizationRequest(context *gin.Context, db *pgxpool.Pool) {
+func AuthorizationRequest(context *gin.Context, db *pgxpool.Pool, cfg *config.Config) {
 	var req UserData
 	if err := context.ShouldBindJSON(&req); err != nil {
 		log.Printf("Ошибка при парсинге JSON: %v", err)
@@ -53,7 +52,7 @@ func authorizationRequest(context *gin.Context, db *pgxpool.Pool) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(cfg.JWTSecret)
 	if err != nil {
 		log.Printf("Ошибка при генерации токена: %v", err)
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка при генерации токена"})

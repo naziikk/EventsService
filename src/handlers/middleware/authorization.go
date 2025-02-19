@@ -1,12 +1,13 @@
 package middleware
 
 import (
+	"RedisService/internal/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 )
 
-var jwtKey = []byte("your-secret-key")
+//var jwtKey = []byte("your-secret-key")
 
 type Claims struct {
 	Username string `json:"username"`
@@ -15,7 +16,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		token, err := context.Cookie("jwt_token")
 
@@ -27,7 +28,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims := &Claims{}
 		jwtToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return cfg.JWTSecret, nil
 		})
 		if err != nil || !jwtToken.Valid {
 			context.JSON(http.StatusUnauthorized, gin.H{"message": "Недействительный токен"})

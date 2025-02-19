@@ -15,19 +15,21 @@ type UserData struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func loginRequest(context *gin.Context, db *pgxpool.Pool) {
+func LoginRequest(context *gin.Context, db *pgxpool.Pool) {
 	var req UserData
 
 	if err := context.ShouldBindJSON(&req); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Неверный формат запроса"})
 		return
 	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Ошибка при хешировании пароля: %v", err)
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка при хешировании пароля"})
 		return
 	}
+
 	if !savePasswordInDB(db, UserData{Username: req.Username, Email: req.Email, Password: string(hashedPassword)}) {
 		log.Printf("Ошибка при сохранении пароля")
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка при сохранении пароля"})

@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	Env          string       `yaml:"env" env-default:"local"`
+	JWTSecret   string        `yaml:"jwt_secret" env-default:"your-secret-key"`
 	HTTPServer   HTTPServer   `yaml:"http_server"`
 	RedisServer  RedisServer  `yaml:"redis_server"`
 	PostgresData PostgresData `yaml:"postgres_data"`

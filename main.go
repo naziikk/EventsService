@@ -4,9 +4,11 @@ import (
 	"RedisService/internal/config"
 	"RedisService/internal/database"
 	_ "RedisService/internal/database"
+	"RedisService/src/handlers/authorization"
 	"RedisService/src/handlers/events"
 	"RedisService/src/handlers/middleware"
 	"RedisService/src/handlers/redis"
+	"RedisService/src/handlers/user"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v5"
 	"log"
@@ -22,29 +24,29 @@ func main() {
 	server := gin.Default()
 
 	server.Use(middleware.LoggingMiddleware())
-	server.Use(middleware.AuthMiddleware())
+	server.Use(middleware.AuthMiddleware(cfg))
 
-	server.POST("/users/register", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на регистрацию пользователя
+	server.POST("/user/register", func(context *gin.Context) {
+		authorization.LoginRequest(context, db)
 	})
 
-	server.POST("/users/authorize", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на авторизацию пользователя
+	server.POST("/user/authorize", func(context *gin.Context) {
+		authorization.AuthorizationRequest(context, db, cfg)
 	})
 
-	server.GET("/users/:id/info", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на получение информации о пользователе
+	server.GET("/user/me", func(context *gin.Context) {
+		user.GetUserInfoRequest(context, db)
 	})
 
-	server.PUT("/users/:id/update", func(context *gin.Context) {
+	server.PUT("/user/update", func(context *gin.Context) {
 		// TODO: Добавить обработку запроса на обновление информации о пользователе
 	})
 
-	server.POST("/user/:id/reset_password", func(context *gin.Context) {
+	server.POST("/user/reset_password", func(context *gin.Context) {
 		// TODO: Добавить обработку запроса на сброс пароля пользователя
 	})
 
-	server.POST("/redis/user/:id/waiting_list", redis_worker.AddUserToWaitingListRequest)
+	server.POST("/redis/user/waiting_list", redis_worker.AddUserToWaitingListRequest)
 
 	server.POST("/redis/next_user", redis_worker.ProcessNextUserRequest)
 

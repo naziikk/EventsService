@@ -2,15 +2,27 @@ openapi: 3.0.0
 info:
   title: EventsService API
   version: 1.0.0
-  description: API для очередей пользователей
+  description: API для создания и управления событиями
 
 servers:
   - url: http://localhost:8010
     description: Локальный сервер для разработки
 
+tags:
+  - name: UsersAPI
+    description: Операции с пользователями
+  - name: EventsAPI
+    description: Операции с событиями
+  - name: RedisAPI
+    description: Операции с Redis
+  - name: AttendanceAPI
+    description: Операции с посещением событий
+
 paths:
   /user/register:
     post:
+      tags:
+        - UsersAPI
       summary: Регистрация пользователя
       description: Регистрация пользователя по логину и паролю
       requestBody:
@@ -46,6 +58,8 @@ paths:
 
   /user/authorize:
     post:
+      tags:
+        - UsersAPI
       summary: Авторизация пользователя
       description: Авторизация пользователя по логину и паролю
       requestBody:
@@ -76,8 +90,70 @@ paths:
         '500':
             description: Ошибка сервера
 
+  /user/reset_password:
+    post:
+      tags:
+        - UsersAPI
+      summary: Сброс пароля
+      description: Сброс пароля пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: Новый пароль
+                  example: "new_password"
+      responses:
+        '200':
+          description: Пароль успешно изменен
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь не авторизован
+        '500':
+          description: Ошибка сервера
+
+  /user/update:
+    put:
+      tags:
+        - UsersAPI
+      summary: Обновление информации о пользователе
+      description: Обновление информации о пользователе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Новый логин
+                  example: "new_username"
+                email:
+                  type: string
+                  description: Новая почта
+                  example: "new_email"
+      responses:
+        '200':
+          description: Информация о пользователе успешно обновлена
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Пользователь не авторизован
+        '409':
+          description: Пользователь с таким логином уже существует
+        '500':
+          description: Ошибка сервера
+
   /user/me:
     get:
+      tags:
+        - UsersAPI
       summary: Получение информации о пользователе
       description: Получение информации о текущем пользователе
       responses:
@@ -88,90 +164,114 @@ paths:
         '500':
           description: Ошибка сервера
 
-#  /redis/user/{id}/waiting_list:
-#    post:
-#      summary: Добавление пользователя в список ожидания
-#      description: Добавляет пользователя в список ожидания на покупку билета
-#      parameters:
-#        - name: id
-#          in: path
-#          required: true
-#          description: Уникальный идентификатор пользователя
-#          schema:
-#            type: string
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              type: object
-#              properties:
-#                match_id:
-#                  type: string
-#                  description: Идентификатор матча
-#                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
-#      responses:
-#        '200':
-#          description: Пользователь успешно добавлен в список ожидания
-#        '400':
-#          description: Ошибка в запросе (например, некорректные данные)
-#        '500':
-#          description: Ошибка сервера
-#
-#  /redis/next_user:
-#    post:
-#      summary: Получение следующего пользователя из списка ожидания
-#      description: Возвращает следующего пользователя из списка ожидания на покупку билета
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              type: object
-#              properties:
-#                match_id:
-#                  type: string
-#                  description: Идентификатор матча
-#                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
-#      responses:
-#        '200':
-#          description: Пользователь успешно получен
-#        '404':
-#          description: Список ожидания пуст
-#        '500':
-#          description: Ошибка сервера
-#
-#  /create_event:
-#    post:
-#      summary: Создание события
-#      description: Создает событие
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#            type: object
-#            properties:
-#              event_name:
-#                type: string
-#                description: Название события
-#                example: "Футбольный матч"
-#              price:
-#                type: integer
-#                description: Цена билета
-#                example: 1000
-#              places_count:
-#                type: integer
-#                description: Количество мест
-#                example: 100
-#            required:
-#              - event_name
-#              - price
-#              - places_count
-#      responses:
-#        '201':
-#          description: Событие успешно создано
-#        '400':
-#          description: Ошибка в запросе (например, некорректные данные)
-#        '500':
-#          description: Ошибка сервера
+  /user/{id}/events:
+    get:
+      tags:
+        - UsersAPI
+      summary: Получение событий пользователя
+      description: Получение событий, на которые записан пользователь
+      responses:
+        '200':
+          description: События успешно получены
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Ошибка сервера
+
+  /redis/user/waiting_list:
+    post:
+      tags:
+        - RedisAPI
+      summary: Добавление пользователя в список ожидания
+      description: Добавляет пользователя в список ожидания на покупку билета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  type: string
+                  description: Идентификатор матча
+                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+        '200':
+          description: Пользователь успешно добавлен в список ожидания
+        '400':
+          description: Ошибка в запросе (например, некорректные данные)
+        '500':
+          description: Ошибка сервера
+
+  /redis/next_user:
+    post:
+      tags:
+        - RedisAPI
+      summary: Получение следующего пользователя из списка ожидания
+      description: Возвращает следующего пользователя из списка ожидания на покупку билета
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                match_id:
+                  type: string
+                  description: Идентификатор матча
+                  example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+        '200':
+          description: Пользователь успешно получен
+        '404':
+          description: Список ожидания пуст
+        '500':
+          description: Ошибка сервера
+
+  /event/{id}/register:
+    post:
+      tags:
+        - AttendanceAPI
+      summary: Присоединение к событию
+      description: Присоединение пользователя к событию
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Идентификатор события
+          schema:
+            type: string
+            example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+        '200':
+          description: Пользователь успешно присоединен к событию
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Пользователь не авторизован
+        '500':
+          description: Ошибка сервера
+
+  /event/{id}/cancel:
+    delete:
+      tags:
+        - AttendanceAPI
+      summary: Отмена участия в событии
+      description: Отмена участия пользователя в событии
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Идентификатор события
+          schema:
+              type: string
+              example: "03e40c24-1d2c-4480-90e7-ad58cd17192f"
+      responses:
+          '200':
+              description: Пользователь успешно отписан от события
+          '400':
+              description: Ошибка в запросе
+          '401':
+              description: Пользователь не авторизован
+          '500':
+              description: Ошибка сервера

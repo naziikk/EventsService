@@ -47,7 +47,7 @@ func main() {
 		userRoutes.POST("/reset_password", func(ctx *gin.Context) {
 			authorization.ResetPasswordRequest(ctx, db)
 		})
-		userRoutes.GET("/:id/events", func(ctx *gin.Context) {
+		userRoutes.GET("/events", func(ctx *gin.Context) {
 			events.GetUserEventsRequest(ctx, db)
 		})
 	}

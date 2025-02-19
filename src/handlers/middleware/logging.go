@@ -12,6 +12,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 		context.Next()
 		finish := time.Since(start)
 
-		log.Println("Обработан запрос ", context.Request.URL.Path, ". Время выполнения: ", finish)
+		log.Println("Обработан запрос", context.Request.URL.Path, "\nВремя выполнения: ", finish)
 	}
 }

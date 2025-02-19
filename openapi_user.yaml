@@ -76,6 +76,17 @@ paths:
         '500':
             description: Ошибка сервера
 
+  /user/me:
+    get:
+      summary: Получение информации о пользователе
+      description: Получение информации о текущем пользователе
+      responses:
+        '200':
+          description: Информация о пользователе успешно получена
+        '401':
+          description: Пользователь не авторизован
+        '500':
+          description: Ошибка сервера
 
 #  /redis/user/{id}/waiting_list:
 #    post:

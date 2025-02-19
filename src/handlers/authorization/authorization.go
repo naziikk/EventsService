@@ -57,21 +57,22 @@ func UserAuthorizationRequest(context *gin.Context, db *pgxpool.Pool, cfg *confi
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(cfg.JWTSecret)
-	if err != nil {
-		log.Printf("Ошибка при генерации токена: %v", err)
+	tokenString, err1 := token.SignedString([]byte(cfg.JWTSecret))
+	if err1 != nil {
+		log.Printf("Ошибка при генерации токена: %v", err1)
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка при генерации токена"})
 		return
 	}
 
 	context.SetCookie("jwt_token", tokenString, 3600*24, "/", "", true, true)
 
-	context.JSON(http.StatusOK, gin.H{"message": "Успешная авторизация"})
+	context.JSON(http.StatusOK, gin.H{"message": "Успешная авторизация",
+		"jwt-token": tokenString})
 }
 
 func validatePassword(db *pgxpool.Pool, username string, password string) bool {
 	var passwordHash string
-	query := "SELECT password FROM events_service_data.users WHERE username = $1"
+	query := "SELECT password_hash FROM events_service.users WHERE username = $1"
 
 	err := db.QueryRow(context.Background(), query, username).Scan(&passwordHash)
 	if err != nil {
@@ -89,7 +90,7 @@ func validatePassword(db *pgxpool.Pool, username string, password string) bool {
 func getUsersEmail(db *pgxpool.Pool, username string) (string, string, error) {
 	var Email string
 	var userId string
-	query := "SELECT email, id FROM events_service_data.users WHERE username = $1"
+	query := "SELECT email, id FROM events_service.users WHERE username = $1"
 
 	err := db.QueryRow(context.Background(), query, username).Scan(&Email, &userId)
 	if err != nil {

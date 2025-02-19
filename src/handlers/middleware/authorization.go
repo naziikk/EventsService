@@ -18,6 +18,16 @@ type Claims struct {
 
 func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(context *gin.Context) {
+		noAuthRoutes := map[string]bool{
+			"/user/register":  true,
+			"/user/authorize": true,
+		}
+
+		if noAuthRoutes[context.FullPath()] {
+			context.Next()
+			return
+		}
+
 		token, err := context.Cookie("jwt_token")
 
 		if err != nil {

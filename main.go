@@ -18,9 +18,13 @@ func main() {
 	cfg := config.MustLoadConfig()   // Получили конфиги
 	db, _ := database.ConnectDB(cfg) // Подключились к базе данных
 	defer db.Close()                 // Не забываем закрыть соединение с базой данных по окончании
-	redis_worker.InitRedis(cfg)      // Подключились к Redis
-	defer redis_worker.Rdb.Close()   // Не забываем закрыть соединение с Redis по окончании
+	if err := database.InitDB(db); err != nil {
+		log.Fatalf("Ошибка инициализации БД: %v", err)
+	}
+	redis_worker.InitRedis(cfg)    // Подключились к Redis
+	defer redis_worker.Rdb.Close() // Не забываем закрыть соединение с Redis по окончании
 
+	//notifications.SendEmail("zacnazar20@gmail.com", "Test", "Test")
 	router := gin.Default()
 
 	router.Use(middleware.LoggingMiddleware())

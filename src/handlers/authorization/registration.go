@@ -52,7 +52,7 @@ func LoginRequest(context *gin.Context, db *pgxpool.Pool) {
 }
 
 func savePasswordInDB(db *pgxpool.Pool, req UserData) bool {
-	query := "INSERT INTO events_service_data.users (username, email, password) VALUES ($1, $2, $3)"
+	query := "INSERT INTO events_service.users (username, email, password_hash) VALUES ($1, $2, $3)"
 	_, err := db.Exec(context.Background(), query, req.Username, req.Email, req.Password)
 	if err != nil {
 		log.Printf("Ошибка при сохранении пароля в базе данных: %v", err)
@@ -62,7 +62,7 @@ func savePasswordInDB(db *pgxpool.Pool, req UserData) bool {
 }
 
 func checkUsernameUniqueness(db *pgxpool.Pool, username string) (bool, error) {
-	query := "SELECT 1 FROM events_service_data.users WHERE username = $1 LIMIT 1"
+	query := "SELECT 1 FROM events_service.users WHERE username = $1 LIMIT 1"
 	var exists int
 	err := db.QueryRow(context.Background(), query, username).Scan(&exists)
 

@@ -9,10 +9,11 @@ import (
 
 type Config struct {
 	Env          string       `yaml:"env" env-default:"local"`
-	JWTSecret   string        `yaml:"jwt_secret" env-default:"your-secret-key"`
+	JWTSecret    string       `yaml:"jwt_secret" env-default:"your-secret-key"`
 	HTTPServer   HTTPServer   `yaml:"http_server"`
 	RedisServer  RedisServer  `yaml:"redis_server"`
 	PostgresData PostgresData `yaml:"postgres_data"`
+	YandexSMTP   YandexSMTP   `yaml:"yandex_smtp"`
 }
 
 type HTTPServer struct {
@@ -30,6 +31,13 @@ type RedisServer struct {
 type PostgresData struct {
 	Address string `yaml:"address" env-default:"localhost:5432"`
 	Name    string `yaml:"name" env-default:"postgres"`
+}
+
+type YandexSMTP struct {
+	SMTPServer  string `yaml:"smtp-server" env-default:"smtp.yandex.ru"`
+	SMTPPort    string `yaml:"smtp-port" env-default:"465"`
+	SenderEmail string `yaml:"sender-email" env-default:"notificationsProject.yandex.ru"`
+	AuthApiKey  string `yaml:"api-key"`
 }
 
 func MustLoadConfig() *Config {

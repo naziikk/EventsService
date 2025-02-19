@@ -14,3 +14,9 @@ postgres_data:
   name: "events_service_data"
 
 jwt-secret: "vVerYsEEECre234TtoOoKkEnn"
+
+yandex-server:
+  smtp-server: "smtp.yandex.ru"
+  smtp-port: "465"
+  sender-email: "notificationProject@yandex.ru"
+  api-key: "wldowwgkplgpcdlt"

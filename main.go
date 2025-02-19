@@ -21,60 +21,63 @@ func main() {
 	redis_worker.InitRedis(cfg)      // Подключились к Redis
 	defer redis_worker.Rdb.Close()   // Не забываем закрыть соединение с Redis по окончании
 
-	server := gin.Default()
+	router := gin.Default()
 
-	server.Use(middleware.LoggingMiddleware())
-	server.Use(middleware.AuthMiddleware(cfg))
+	router.Use(middleware.LoggingMiddleware())
+	router.Use(middleware.AuthMiddleware(cfg))
 
-	server.POST("/user/register", func(context *gin.Context) {
-		authorization.LoginRequest(context, db)
-	})
+	userRoutes := router.Group("/user")
+	{
+		userRoutes.POST("/register", func(ctx *gin.Context) {
+			authorization.LoginRequest(ctx, db)
+		})
+		userRoutes.POST("/authorize", func(ctx *gin.Context) {
+			authorization.AuthorizationRequest(ctx, db, cfg)
+		})
+		userRoutes.GET("/me", func(ctx *gin.Context) {
+			user.GetUserInfoRequest(ctx, db)
+		})
+		userRoutes.PUT("/update", func(ctx *gin.Context) {
+			user.UpdateUserInfoRequest(ctx, db)
+		})
+		userRoutes.POST("/reset_password", func(ctx *gin.Context) {
+			// TODO: Добавить обработку сброса пароля
+		})
+		userRoutes.GET("/:id/events", func(ctx *gin.Context) {
+			events.GetUserEventsRequest(ctx, db)
+		})
+	}
 
-	server.POST("/user/authorize", func(context *gin.Context) {
-		authorization.AuthorizationRequest(context, db, cfg)
-	})
+	redisRoutes := router.Group("/redis")
+	{
+		redisRoutes.POST("/user/waiting_list", redis_worker.AddUserToWaitingListRequest)
+		redisRoutes.POST("/next_user", redis_worker.ProcessNextUserRequest)
+	}
 
-	server.GET("/user/me", func(context *gin.Context) {
-		user.GetUserInfoRequest(context, db)
-	})
+	eventRoutes := router.Group("/events")
+	{
+		eventRoutes.POST("/create", func(ctx *gin.Context) {
+			events.CreateEventRequest(ctx, db)
+		})
+		eventRoutes.GET("/list", func(ctx *gin.Context) {
+			events.GetAllEventsRequest(ctx, db)
+		})
+		eventRoutes.GET("/:id/participants", func(ctx *gin.Context) {
+			// TODO: Добавить обработку получения списка участников
+		})
+	}
 
-	server.PUT("/user/update", func(context *gin.Context) {
-		user.UpdateUserInfoRequest(context, db)
-	})
+	attendanceRoutes := router.Group("/event")
+	{
+		attendanceRoutes.POST("/:id/register", func(ctx *gin.Context) {
+			events.AttendEventRequest(ctx, db)
+		})
+		attendanceRoutes.DELETE("/:id/cancel", func(ctx *gin.Context) {
+			events.CancelVisitRequest(ctx, db)
+		})
+	}
 
-	server.POST("/user/reset_password", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на сброс пароля пользователя
-	})
-
-	server.POST("/redis/user/waiting_list", redis_worker.AddUserToWaitingListRequest)
-
-	server.POST("/redis/next_user", redis_worker.ProcessNextUserRequest)
-
-	server.POST("/events/create", func(context *gin.Context) {
-		events.CreateEventRequest(context, db)
-	})
-
-	server.GET("/users/:id/events", func(context *gin.Context) {
-		events.GetUserEventsRequest(context, db)
-	})
-
-	server.POST("/event/:id/register", func(context *gin.Context) {
-		events.AttendEventRequest(context, db)
-	})
-
-	server.DELETE("/event/:id/cancel", func(context *gin.Context) {
-		events.CancelVisitRequest(context, db)
-	})
-
-	server.GET("/events/list", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на получение списка событий
-	})
-
-	server.GET("/events/:id/participants", func(context *gin.Context) {
-		// TODO: Добавить обработку запроса на получение списка участников события
-	})
-
-	err := server.Run(cfg.HTTPServer.Address)
+	err := router.Run(cfg.HTTPServer.Address)
 	if err != nil {
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}

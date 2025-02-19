@@ -2,7 +2,9 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -20,6 +22,17 @@ func LoginRequest(context *gin.Context, db *pgxpool.Pool) {
 
 	if err := context.ShouldBindJSON(&req); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Неверный формат запроса"})
+		return
+	}
+
+	exists, err := checkUsernameUniqueness(db, req.Username)
+	if err != nil {
+		log.Printf("Ошибка при проверке уникальности имени пользователя: %v", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Ошибка при проверке уникальности имени пользователя"})
+		return
+	}
+	if !exists {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Имя пользователя уже занято"})
 		return
 	}
 
@@ -46,4 +59,18 @@ func savePasswordInDB(db *pgxpool.Pool, req UserData) bool {
 		return false
 	}
 	return true
+}
+
+func checkUsernameUniqueness(db *pgxpool.Pool, username string) (bool, error) {
+	query := "SELECT 1 FROM events_service_data.users WHERE username = $1 LIMIT 1"
+	var exists int
+	err := db.QueryRow(context.Background(), query, username).Scan(&exists)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
 }

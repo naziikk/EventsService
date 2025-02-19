@@ -32,7 +32,7 @@ func main() {
 			authorization.LoginRequest(ctx, db)
 		})
 		userRoutes.POST("/authorize", func(ctx *gin.Context) {
-			authorization.AuthorizationRequest(ctx, db, cfg)
+			authorization.UserAuthorizationRequest(ctx, db, cfg)
 		})
 		userRoutes.GET("/me", func(ctx *gin.Context) {
 			user.GetUserInfoRequest(ctx, db)
@@ -41,7 +41,7 @@ func main() {
 			user.UpdateUserInfoRequest(ctx, db)
 		})
 		userRoutes.POST("/reset_password", func(ctx *gin.Context) {
-			// TODO: Добавить обработку сброса пароля
+			authorization.ResetPasswordRequest(ctx, db)
 		})
 		userRoutes.GET("/:id/events", func(ctx *gin.Context) {
 			events.GetUserEventsRequest(ctx, db)
@@ -63,7 +63,7 @@ func main() {
 			events.GetAllEventsRequest(ctx, db)
 		})
 		eventRoutes.GET("/:id/participants", func(ctx *gin.Context) {
-			// TODO: Добавить обработку получения списка участников
+			events.GetEventsParticipantsRequest(ctx, db)
 		})
 	}
 

@@ -21,8 +21,13 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func AuthorizationRequest(context *gin.Context, db *pgxpool.Pool, cfg *config.Config) {
-	var req UserData
+type UserDataWithoutEmail struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+func UserAuthorizationRequest(context *gin.Context, db *pgxpool.Pool, cfg *config.Config) {
+	var req UserDataWithoutEmail
 	if err := context.ShouldBindJSON(&req); err != nil {
 		log.Printf("Ошибка при парсинге JSON: %v", err)
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Неверный формат запроса"})
